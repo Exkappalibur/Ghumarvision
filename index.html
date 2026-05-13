@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Eurovision Semi 2 — Pool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bungee&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ─── PALETTE ─── */
+    :root {
+      --bg: #0a0612;
+      --bg-soft: #1a0d2e;
+      --ink: #fef6ff;
+      --ink-soft: #d8b4fe;
+      --pink: #ff2e93;
+      --cyan: #00e5ff;
+      --gold: #ffd84d;
+      --muted: #3d2659;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-image:
+        radial-gradient(ellipse 80% 40% at 20% 0%, rgba(255, 46, 147, 0.25), transparent 70%),
+        radial-gradient(ellipse 60% 50% at 90% 30%, rgba(0, 229, 255, 0.18), transparent 70%),
+        radial-gradient(ellipse 50% 40% at 50% 100%, rgba(255, 216, 77, 0.12), transparent 70%);
+      background-attachment: fixed;
+      position: relative;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.06;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--cyan);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-family: "Bungee", system-ui, sans-serif;
+      font-size: clamp(36px, 9vw, 64px);
+      line-height: 0.95;
+      margin: 0 0 8px;
+      letter-spacing: 0.01em;
+      background: linear-gradient(135deg, var(--pink) 0%, var(--gold) 50%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--ink-soft);
+      font-size: 14px;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+
+    /* ─── SECTIONS ─── */
+    section {
+      margin-bottom: 28px;
+    }
+
+    .section-label {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--pink);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .section-hint {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin-bottom: 12px;
+    }
+
+    /* ─── INPUTS ─── */
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid var(--muted);
+      border-radius: 12px;
+      color: var(--ink);
+      font-size: 16px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.15s;
+      appearance: none;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: var(--cyan);
+    }
+
+    select {
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%23d8b4fe' stroke-width='2' fill='none' stroke-linecap='round'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
+    }
+
+    select:invalid {
+      color: var(--ink-soft);
+    }
+
+    select option {
+      background: var(--bg-soft);
+      color: var(--ink);
+    }
+
+    /* ─── COUNTRY GRID ─── */
+    .country-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .country-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--ink-soft);
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .country-btn .flag {
+      font-size: 20px;
+    }
+
+    .country-btn.selected {
+      border-color: var(--pink);
+      background: linear-gradient(135deg, rgba(255, 46, 147, 0.25), rgba(0, 229, 255, 0.12));
+      color: var(--ink);
+      font-weight: 700;
+      box-shadow: 0 0 0 1px var(--pink), 0 4px 20px rgba(255, 46, 147, 0.25);
+    }
+
+    .country-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      color: #6b5483;
+    }
+
+    /* ─── PLEDGE ─── */
+    .pledge-btn {
+      width: 100%;
+      text-align: left;
+      padding: 18px 20px;
+      border-radius: 14px;
+      border: 1.5px solid var(--muted);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .pledge-btn.checked {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(255, 216, 77, 0.18), rgba(255, 46, 147, 0.08));
+    }
+
+    .pledge-box {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 2px solid var(--muted);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--bg);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .pledge-btn.checked .pledge-box {
+      background: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .pledge-title {
+      font-weight: 700;
+    }
+
+    .pledge-sub {
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    /* ─── FUN SECTION ─── */
+    .fun-group {
+      display: grid;
+      gap: 12px;
+    }
+
+    .fun-label {
+      font-size: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .fun-label.fav {
+      color: var(--gold);
+    }
+
+    .fun-label.hate {
+      color: var(--pink);
+    }
+
+    .fun-label.wtf {
+      color: var(--cyan);
+    }
+
+    /* ─── SUBMIT ─── */
+    .submit-btn {
+      width: 100%;
+      padding: 20px;
+      border-radius: 14px;
+      border: none;
+      background: var(--muted);
+      color: var(--ink-soft);
+      font-size: 18px;
+      font-family: "Bungee", system-ui, sans-serif;
+      letter-spacing: 0.05em;
+      cursor: not-allowed;
+      transition: all 0.2s;
+      margin-top: 8px;
+    }
+
+    .submit-btn.ready {
+      background: linear-gradient(135deg, var(--pink), var(--gold));
+      color: var(--bg);
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(255, 46, 147, 0.4);
+    }
+
+    .footer-note {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 20px;
+      letter-spacing: 0.1em;
+    }
+
+    .error {
+      color: var(--pink);
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* ─── SUBMITTED SCREEN ─── */
+    .submitted {
+      text-align: center;
+      padding-top: 60px;
+    }
+
+    .disco {
+      font-size: 80px;
+      margin-bottom: 24px;
+      display: inline-block;
+      animation: spin 8s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .submitted h1 {
+      font-size: clamp(32px, 8vw, 52px);
+      line-height: 1;
+      margin: 0 0 16px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- ─── FORM VIEW ─── -->
+    <div id="form-view">
+      <header>
+        <div class="eyebrow">◆ Vienna · 14 May 2026 · 21:00 CEST ◆</div>
+        <h1>EUROVISION<br />SEMI 2 POOL</h1>
+        <div class="subtitle">Lock in your picks. One shot, no edits.</div>
+      </header>
+
+      <section>
+        <div class="section-label">01 / Your name</div>
+        <input type="text" id="name" placeholder="So I know who picked what" maxlength="40" />
+      </section>
+
+      <section>
+        <div class="section-label">02 / The 10 qualifiers</div>
+        <div class="section-hint" id="qualifier-hint">Pick exactly 10 of 15. Selected: 0 / 10</div>
+        <div class="country-grid" id="country-grid"></div>
+      </section>
+
+      <section>
+        <div class="section-label">03 / Who wins the semi</div>
+        <div class="section-hint">Just for fun — won't be officially announced</div>
+        <select id="semi-winner" required>
+          <option value="" disabled selected>Pick a winner</option>
+        </select>
+      </section>
+
+      <section>
+        <div class="section-label">04 / The pledge</div>
+        <div class="section-hint">1,000 AMD to the winner. Winner takes the pot.</div>
+        <button type="button" class="pledge-btn" id="pledge-btn">
+          <div class="pledge-box" id="pledge-box"></div>
+          <div>
+            <div class="pledge-title">I'm in for 1,000 AMD</div>
+            <div class="pledge-sub">Pay up if I lose, take the pot if I win</div>
+          </div>
+        </button>
+      </section>
+
+      <section>
+        <div class="section-label">05 / For fun</div>
+        <div class="section-hint">No wrong answers. Except there are.</div>
+        <div class="fun-group">
+          <div>
+            <div class="fun-label fav">★ Personal favorite</div>
+            <select id="favorite" required>
+              <option value="" disabled selected>The one you'd vote for</option>
+            </select>
+          </div>
+          <div>
+            <div class="fun-label hate">✗ Most hated</div>
+            <select id="hated" required>
+              <option value="" disabled selected>The one that ruins your night</option>
+            </select>
+          </div>
+          <div>
+            <div class="fun-label wtf">⁇ Most WTF</div>
+            <select id="wtf" required>
+              <option value="" disabled selected>The one you can't explain</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <div id="error" class="error hidden"></div>
+
+      <button type="button" class="submit-btn" id="submit-btn" disabled>LOCK IN PICKS</button>
+
+      <div class="footer-note">FINAL · NO EDITS · NO TAKEBACKS</div>
+    </div>
+
+    <!-- ─── SUBMITTED VIEW ─── -->
+    <div id="submitted-view" class="submitted hidden">
+      <div class="disco">🪩</div>
+      <h1>LOCKED IN</h1>
+      <p style="color: var(--ink-soft); font-size: 16px; margin-top: 16px;">
+        Your picks are saved. See you at the show.
+      </p>
+      <div class="footer-note" style="margin-top: 32px; letter-spacing: 0.2em;">
+        14 MAY 2026 · 21:00 CEST
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ─── CONFIG ─────────────────────────────────────────────────────────────────
+    // Paste your Apps Script Web App URL here after deploying it.
+    // See SETUP.md for instructions.
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHt0KGV-rhvebYy0LZbmkqUuPPvVb66Z3WKZ_x6gdmLF37ahdJ-JREPHyeK8hWhtIwyg/exec";
+
+    const COUNTRIES = [
+      { code: "AL", name: "Albania", flag: "🇦🇱" },
+      { code: "AM", name: "Armenia", flag: "🇦🇲" },
+      { code: "AU", name: "Australia", flag: "🇦🇺" },
+      { code: "AZ", name: "Azerbaijan", flag: "🇦🇿" },
+      { code: "BG", name: "Bulgaria", flag: "🇧🇬" },
+      { code: "CY", name: "Cyprus", flag: "🇨🇾" },
+      { code: "CZ", name: "Czechia", flag: "🇨🇿" },
+      { code: "DK", name: "Denmark", flag: "🇩🇰" },
+      { code: "LV", name: "Latvia", flag: "🇱🇻" },
+      { code: "LU", name: "Luxembourg", flag: "🇱🇺" },
+      { code: "MT", name: "Malta", flag: "🇲🇹" },
+      { code: "NO", name: "Norway", flag: "🇳🇴" },
+      { code: "RO", name: "Romania", flag: "🇷🇴" },
+      { code: "CH", name: "Switzerland", flag: "🇨🇭" },
+      { code: "UA", name: "Ukraine", flag: "🇺🇦" }
+    ];
+
+    const REQUIRED = 10;
+
+    // ─── STATE ──────────────────────────────────────────────────────────────────
+    const state = {
+      qualifiers: [],
+      pledge: false
+    };
+
+    // ─── INIT ───────────────────────────────────────────────────────────────────
+    window.addEventListener("DOMContentLoaded", () => {
+      // Show submitted screen if this browser already submitted
+      if (localStorage.getItem("eurovision_sf2_submitted")) {
+        showSubmittedView();
+        return;
+      }
+
+      renderCountryGrid();
+      populateSelects();
+      wireUpForm();
+      updateValidity();
+    });
+
+    // ─── RENDERING ──────────────────────────────────────────────────────────────
+    function renderCountryGrid() {
+      const grid = document.getElementById("country-grid");
+      COUNTRIES.forEach(c => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "country-btn";
+        btn.dataset.code = c.code;
+        btn.innerHTML = `<span class="flag">${c.flag}</span><span>${c.name}</span>`;
+        btn.addEventListener("click", () => toggleQualifier(c.code, btn));
+        grid.appendChild(btn);
+      });
+    }
+
+    function populateSelects() {
+      ["semi-winner", "favorite", "hated", "wtf"].forEach(id => {
+        const sel = document.getElementById(id);
+        COUNTRIES.forEach(c => {
+          const opt = document.createElement("option");
+          opt.value = c.code;
+          opt.textContent = `${c.flag}  ${c.name}`;
+          sel.appendChild(opt);
+        });
+        sel.addEventListener("change", updateValidity);
+      });
+    }
+
+    function wireUpForm() {
+      document.getElementById("name").addEventListener("input", updateValidity);
+      document.getElementById("pledge-btn").addEventListener("click", togglePledge);
+      document.getElementById("submit-btn").addEventListener("click", handleSubmit);
+    }
+
+    // ─── INTERACTIONS ───────────────────────────────────────────────────────────
+    function toggleQualifier(code, btn) {
+      const idx = state.qualifiers.indexOf(code);
+      if (idx >= 0) {
+        state.qualifiers.splice(idx, 1);
+        btn.classList.remove("selected");
+      } else if (state.qualifiers.length < REQUIRED) {
+        state.qualifiers.push(code);
+        btn.classList.add("selected");
+      }
+      // Disable unselected if at limit
+      document.querySelectorAll(".country-btn").forEach(b => {
+        if (!state.qualifiers.includes(b.dataset.code)) {
+          b.disabled = state.qualifiers.length >= REQUIRED;
+        } else {
+          b.disabled = false;
+        }
+      });
+      document.getElementById("qualifier-hint").textContent =
+        `Pick exactly 10 of 15. Selected: ${state.qualifiers.length} / ${REQUIRED}`;
+      updateValidity();
+    }
+
+    function togglePledge() {
+      state.pledge = !state.pledge;
+      const btn = document.getElementById("pledge-btn");
+      const box = document.getElementById("pledge-box");
+      btn.classList.toggle("checked", state.pledge);
+      box.textContent = state.pledge ? "✓" : "";
+    }
+
+    function updateValidity() {
+      const name = document.getElementById("name").value.trim();
+      const ok =
+        name.length > 0 &&
+        state.qualifiers.length === REQUIRED &&
+        document.getElementById("semi-winner").value &&
+        document.getElementById("favorite").value &&
+        document.getElementById("hated").value &&
+        document.getElementById("wtf").value;
+      const btn = document.getElementById("submit-btn");
+      btn.disabled = !ok;
+      btn.classList.toggle("ready", ok);
+    }
+
+    // ─── SUBMIT ─────────────────────────────────────────────────────────────────
+    async function handleSubmit() {
+      const btn = document.getElementById("submit-btn");
+      const errEl = document.getElementById("error");
+      errEl.classList.add("hidden");
+
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = "LOCKING IN…";
+
+      const submission = {
+        timestamp: new Date().toISOString(),
+        name: document.getElementById("name").value.trim(),
+        pledge: state.pledge,
+        semiWinner: nameOf(document.getElementById("semi-winner").value),
+        qualifiers: state.qualifiers.map(nameOf),
+        qualifierCodes: state.qualifiers.slice(),
+        favorite: nameOf(document.getElementById("favorite").value),
+        hated: nameOf(document.getElementById("hated").value),
+        wtf: nameOf(document.getElementById("wtf").value)
+      };
+
+      try {
+        if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR_APPS_SCRIPT_URL")) {
+          throw new Error("Apps Script URL is not configured.");
+        }
+
+        // text/plain avoids the CORS preflight; Apps Script reads e.postData.contents
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(submission)
+        });
+
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        const data = await res.json().catch(() => ({}));
+        if (data && data.ok === false) throw new Error(data.error || "Server rejected the submission");
+
+        localStorage.setItem("eurovision_sf2_submitted", "1");
+        showSubmittedView();
+      } catch (e) {
+        console.error("[Eurovision pool] submit failed:", e);
+        errEl.textContent = `Couldn't save: ${e.message}. Try again?`;
+        errEl.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = "LOCK IN PICKS";
+      }
+    }
+
+    function nameOf(code) {
+      return COUNTRIES.find(c => c.code === code)?.name || "";
+    }
+
+    function showSubmittedView() {
+      document.getElementById("form-view").classList.add("hidden");
+      document.getElementById("submitted-view").classList.remove("hidden");
+    }
+  </script>
+</body>
+
+</html>
