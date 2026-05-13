@@ -589,12 +589,8 @@
           throw new Error("Apps Script URL is not configured.");
         }
 
-        // no-cors bypasses the CORS redirect issue with Apps Script deployments;
-        // response is opaque so we can't read it, but the POST goes through fine
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(submission),
+        // GET + no-cors survives the Apps Script 302 redirect; POST bodies get dropped on redirect
+        await fetch(SCRIPT_URL + "?payload=" + encodeURIComponent(JSON.stringify(submission)), {
           mode: "no-cors"
         });
 

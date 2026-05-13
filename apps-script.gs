@@ -49,8 +49,38 @@ function doPost(e) {
   }
 }
 
-// Optional: lets you visit the deployment URL in a browser to confirm it's live.
-function doGet() {
+// Handles both health-check GETs and form submissions sent as ?payload=<json>
+function doGet(e) {
+  if (e && e.parameter && e.parameter.payload) {
+    try {
+      const data = JSON.parse(e.parameter.payload);
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const sheet = ss.getActiveSheet();
+
+      if (sheet.getLastRow() === 0) {
+        sheet.appendRow(HEADERS);
+        sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
+        sheet.setFrozenRows(1);
+      }
+
+      const qualifiers = Array.isArray(data.qualifiers) ? data.qualifiers : [];
+      const row = [
+        new Date(data.timestamp || Date.now()),
+        data.name || "",
+        data.pledge ? "Yes" : "No",
+        data.semiWinner || "",
+        ...COUNTRIES.map(c => qualifiers.includes(c) ? 1 : ""),
+        data.favorite || "",
+        data.hated || "",
+        data.wtf || "",
+        qualifiers.join(", ")
+      ];
+      sheet.appendRow(row);
+      return json({ ok: true });
+    } catch (err) {
+      return json({ ok: false, error: String(err) });
+    }
+  }
   return json({ ok: true, message: "Eurovision pool endpoint is live." });
 }
 
