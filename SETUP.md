@@ -1,85 +1,43 @@
-# Eurovision SF2 Pool — Setup
+# Eurovision SF2 Pool
 
-About 10 minutes total. Three pieces: a Google Sheet (storage + admin view), an Apps Script (the backend), and the HTML form (what friends see).
+A single-page voting form for predicting Eurovision Semi-Final 2 results. Friends fill it out, submissions land in an Airtable base.
 
-## 1. Create the Google Sheet
+## Stack
 
-1. Go to [sheets.new](https://sheets.new) — a new blank sheet opens.
-2. Name it something like **Eurovision SF2 Pool**.
-3. That's it. Don't add columns — the script writes them on first submission.
+- `index.html` — the form (vanilla JS, no build step)
+- Hosted on GitHub Pages
+- Submissions stored in Airtable
 
-## 2. Add the Apps Script backend
+## How it works
 
-1. In the sheet, click **Extensions → Apps Script**.
-2. Delete the default `function myFunction() {}` placeholder.
-3. Open `apps-script.gs` (the file I gave you), copy its entire contents, and paste it in.
-4. Save (⌘S / Ctrl+S). Name the project whatever — "Eurovision Pool" is fine.
+The form POSTs directly to the Airtable REST API. The personal access token (PAT) and base/table IDs are embedded in `index.html` (around line 446). The token is scoped to a single base, so exposure is low-risk for a closed pool — worst case someone writes a junk vote.
 
-## 3. Deploy the script as a Web App
+## Airtable schema
 
-1. Top right, click **Deploy → New deployment**.
-2. Click the gear icon next to "Select type" → choose **Web app**.
-3. Fill in:
-   - **Description**: anything (e.g. "v1")
-   - **Execute as**: **Me** (your email)
-   - **Who has access**: **Anyone** ← important, so your friends' browsers can POST
-4. Click **Deploy**.
-5. Google will ask you to authorize — accept. You may see a "Google hasn't verified this app" warning; click **Advanced → Go to [project name] (unsafe)**. It's your own script writing to your own sheet, it's fine.
-6. Copy the **Web app URL**. It looks like:
-   `https://script.google.com/macros/s/AKfycby...../exec`
+Base: `appqidU0p3t0LmJzK` · Table: `Votes`
 
-**Sanity check:** paste that URL into a browser tab. You should see `{"ok":true,"message":"Eurovision pool endpoint is live."}`. If yes, the backend works.
+| Field | Type |
+|---|---|
+| Name | Single line text (primary) |
+| Pledged | Checkbox |
+| Semi Winner | Single line text |
+| Favorite | Single line text |
+| Most Hated | Single line text |
+| Most WTF | Single line text |
+| Qualifiers | Long text (comma-separated country names) |
 
-## 4. Wire up the form
+## Rotating the token
 
-1. Open `index.html` in any text editor.
-2. Find this line near the bottom (inside `<script>`):
-   ```js
-   const SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
-   ```
-3. Replace the placeholder with the Web app URL from step 3. Keep the quotes.
-4. Save.
+If the token leaks or gets abused:
 
-## 5. Host the HTML so friends can open it
+1. Airtable → Settings → Developer hub → Personal access tokens → revoke the old one
+2. Create a new PAT scoped to this base with `data.records:write` (add `data.records:read` and `schema.bases:read/write` if you want to keep editing structure via API)
+3. Update `AIRTABLE_TOKEN` in `index.html`, commit, push
 
-Easiest free options:
+## Local dev
 
-**Netlify Drop** (fastest, ~30 seconds):
-1. Go to [app.netlify.com/drop](https://app.netlify.com/drop)
-2. Drag `index.html` onto the page (no account needed for a one-off deploy, though signing up keeps the site around)
-3. Netlify gives you a URL like `random-name.netlify.app` — that's the link you send friends
+Open `index.html` in a browser — `file://` works fine. Submissions go straight to the live Airtable base, so test in a way that's easy to delete after.
 
-**Other options:** GitHub Pages, Vercel, Cloudflare Pages — all free, all work. Pick whatever you know.
+## Submission lock
 
-## 6. Test it yourself first
-
-1. Open the hosted URL in an incognito window.
-2. Fill out the form and submit.
-3. Check your Google Sheet — a row should appear within a second or two.
-4. If it does: ship it to friends. If it doesn't: see Troubleshooting below.
-
-## 7. Share with friends
-
-Send the hosted URL. Each friend fills it out once. New submissions appear in your sheet as they come in. Sort, filter, or download as CSV from `File → Download → CSV` whenever you want.
-
----
-
-## Notes
-
-- **Submission lock**: each browser can only submit once (stored in `localStorage`). A friend who really wants to resubmit could clear site data or use incognito — fine for friends, not bulletproof.
-- **Re-deploying after a script change**: if you edit `apps-script.gs`, click **Deploy → Manage deployments → pencil icon → Version: New version → Deploy**. The URL stays the same.
-- **Changing the password / restricting access**: anyone with the form URL can submit. If that's a concern, only share the URL with friends. Or add a passphrase field in the form.
-
-## Troubleshooting
-
-**"Couldn't save: Apps Script URL is not configured."**
-→ You forgot to paste the URL into `index.html` step 4.
-
-**"Couldn't save: Failed to fetch" or "Server returned 401/403"**
-→ The Web app's "Who has access" setting isn't "Anyone." Redo step 3 part 3.
-
-**Submission seems to succeed but nothing shows in the sheet**
-→ Make sure the Apps Script is bound to the right sheet (it should be — Extensions → Apps Script opens a script tied to that specific sheet). If you copied script code into a standalone Apps Script project, that won't work; recreate it from inside the sheet.
-
-**Friend can't submit ("already submitted" but they haven't)**
-→ Their browser has a stale `localStorage` flag. They can open the link in incognito or clear site data.
+Each browser stores `eurovision_sf2_submitted=1` in `localStorage` after a successful submission and won't show the form again. A friend who really wants to resubmit can clear site data or use incognito — fine for friends, not bulletproof.
