@@ -367,13 +367,18 @@
       </section>
 
       <section>
-        <div class="section-label">02 / The 10 qualifiers</div>
+        <div class="section-label">02 / Your email</div>
+        <input type="email" id="email" placeholder="For the confirmation + results" maxlength="120" autocomplete="email" />
+      </section>
+
+      <section>
+        <div class="section-label">03 / The 10 qualifiers</div>
         <div class="section-hint" id="qualifier-hint">Pick exactly 10 of 15. Selected: 0 / 10</div>
         <div class="country-grid" id="country-grid"></div>
       </section>
 
       <section>
-        <div class="section-label">03 / Who wins the semi</div>
+        <div class="section-label">04 / Who wins the semi</div>
         <div class="section-hint">Just for fun — won't be officially announced</div>
         <select id="semi-winner" required>
           <option value="" disabled selected>Pick a winner</option>
@@ -381,7 +386,7 @@
       </section>
 
       <section>
-        <div class="section-label">04 / The pledge</div>
+        <div class="section-label">05 / The pledge</div>
         <div class="section-hint">1,000 AMD to the winner. Winner takes the pot.</div>
         <button type="button" class="pledge-btn" id="pledge-btn">
           <div class="pledge-box" id="pledge-box"></div>
@@ -393,7 +398,7 @@
       </section>
 
       <section>
-        <div class="section-label">05 / For fun</div>
+        <div class="section-label">06 / For fun</div>
         <div class="section-hint">No wrong answers. Except there are.</div>
         <div class="fun-group">
           <div>
@@ -473,12 +478,6 @@
 
     // ─── INIT ───────────────────────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
-      // Show submitted screen if this browser already submitted
-      if (localStorage.getItem("eurovision_sf2_submitted")) {
-        showSubmittedView();
-        return;
-      }
-
       renderCountryGrid();
       populateSelects();
       wireUpForm();
@@ -514,6 +513,7 @@
 
     function wireUpForm() {
       document.getElementById("name").addEventListener("input", updateValidity);
+      document.getElementById("email").addEventListener("input", updateValidity);
       document.getElementById("pledge-btn").addEventListener("click", togglePledge);
       document.getElementById("submit-btn").addEventListener("click", handleSubmit);
     }
@@ -551,8 +551,10 @@
 
     function updateValidity() {
       const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
       const ok =
         name.length > 0 &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
         state.qualifiers.length === REQUIRED &&
         document.getElementById("semi-winner").value &&
         document.getElementById("favorite").value &&
@@ -576,6 +578,7 @@
       const submission = {
         timestamp: new Date().toISOString(),
         name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
         pledge: state.pledge,
         semiWinner: nameOf(document.getElementById("semi-winner").value),
         qualifiers: state.qualifiers.map(nameOf),
@@ -595,6 +598,7 @@
           body: JSON.stringify({
             fields: {
               "Name": submission.name,
+              "Email": submission.email,
               "Pledged": !!submission.pledge,
               "Semi Winner": submission.semiWinner,
               "Favorite": submission.favorite,
@@ -610,7 +614,6 @@
           throw new Error("HTTP " + res.status + ": " + body.slice(0, 200));
         }
 
-        localStorage.setItem("eurovision_sf2_submitted", "1");
         showSubmittedView();
       } catch (e) {
         console.error("[Eurovision pool] submit failed:", e);
