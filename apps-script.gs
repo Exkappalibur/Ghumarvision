@@ -13,14 +13,16 @@ const HEADERS = [
   "Favorite","Most Hated","Most WTF","Qualifier List"
 ];
 
+// Form submissions arrive as application/x-www-form-urlencoded with a `payload` field.
+// Form POSTs survive the Apps Script redirect cleanly, unlike fetch POST bodies.
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    const payload = e && e.parameter && e.parameter.payload;
+    if (!payload) return json({ ok: false, error: "missing payload" });
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getActiveSheet();
+    const data = JSON.parse(payload);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
 
-    // Write the header row the first time
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(HEADERS);
       sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
@@ -28,8 +30,7 @@ function doPost(e) {
     }
 
     const qualifiers = Array.isArray(data.qualifiers) ? data.qualifiers : [];
-
-    const row = [
+    sheet.appendRow([
       new Date(data.timestamp || Date.now()),
       data.name || "",
       data.pledge ? "Yes" : "No",
@@ -39,9 +40,7 @@ function doPost(e) {
       data.hated || "",
       data.wtf || "",
       qualifiers.join(", ")
-    ];
-
-    sheet.appendRow(row);
+    ]);
 
     return json({ ok: true });
   } catch (err) {
@@ -49,38 +48,8 @@ function doPost(e) {
   }
 }
 
-// Handles both health-check GETs and form submissions sent as ?payload=<json>
-function doGet(e) {
-  if (e && e.parameter && e.parameter.payload) {
-    try {
-      const data = JSON.parse(e.parameter.payload);
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
-      const sheet = ss.getActiveSheet();
-
-      if (sheet.getLastRow() === 0) {
-        sheet.appendRow(HEADERS);
-        sheet.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
-        sheet.setFrozenRows(1);
-      }
-
-      const qualifiers = Array.isArray(data.qualifiers) ? data.qualifiers : [];
-      const row = [
-        new Date(data.timestamp || Date.now()),
-        data.name || "",
-        data.pledge ? "Yes" : "No",
-        data.semiWinner || "",
-        ...COUNTRIES.map(c => qualifiers.includes(c) ? 1 : ""),
-        data.favorite || "",
-        data.hated || "",
-        data.wtf || "",
-        qualifiers.join(", ")
-      ];
-      sheet.appendRow(row);
-      return json({ ok: true });
-    } catch (err) {
-      return json({ ok: false, error: String(err) });
-    }
-  }
+// Health check — visit the deployment URL in a browser to confirm it's live.
+function doGet() {
   return json({ ok: true, message: "Eurovision pool endpoint is live." });
 }
 

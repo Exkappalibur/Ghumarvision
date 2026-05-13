@@ -438,6 +438,11 @@
 
   </div>
 
+  <iframe name="submit-sink" id="submit-sink" style="display:none" aria-hidden="true"></iframe>
+  <form id="submit-form" method="POST" target="submit-sink" style="display:none">
+    <input type="hidden" name="payload" id="submit-payload">
+  </form>
+
   <script>
     // ─── CONFIG ─────────────────────────────────────────────────────────────────
     // Paste your Apps Script Web App URL here after deploying it.
@@ -584,25 +589,37 @@
         wtf: nameOf(document.getElementById("wtf").value)
       };
 
-      try {
-        if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR_APPS_SCRIPT_URL")) {
-          throw new Error("Apps Script URL is not configured.");
-        }
-
-        // GET + no-cors survives the Apps Script 302 redirect; POST bodies get dropped on redirect
-        await fetch(SCRIPT_URL + "?payload=" + encodeURIComponent(JSON.stringify(submission)), {
-          mode: "no-cors"
-        });
-
-        localStorage.setItem("eurovision_sf2_submitted", "1");
-        showSubmittedView();
-      } catch (e) {
-        console.error("[Eurovision pool] submit failed:", e);
-        errEl.textContent = `Couldn't save: ${e.message}. Try again?`;
+      if (!SCRIPT_URL || SCRIPT_URL.includes("PASTE_YOUR_APPS_SCRIPT_URL")) {
+        errEl.textContent = "Couldn't save: Apps Script URL is not configured. Try again?";
         errEl.classList.remove("hidden");
         btn.disabled = false;
         btn.textContent = "LOCK IN PICKS";
+        return;
       }
+
+      // Submit through a hidden form targeting a hidden iframe. The iframe's load event
+      // fires only after Apps Script responds, so we know the script actually ran.
+      const form = document.getElementById("submit-form");
+      const sink = document.getElementById("submit-sink");
+      document.getElementById("submit-payload").value = JSON.stringify(submission);
+      form.action = SCRIPT_URL;
+
+      const timeout = setTimeout(() => {
+        sink.onload = null;
+        errEl.textContent = "Couldn't save: timed out waiting for server. Try again?";
+        errEl.classList.remove("hidden");
+        btn.disabled = false;
+        btn.textContent = "LOCK IN PICKS";
+      }, 15000);
+
+      sink.onload = () => {
+        clearTimeout(timeout);
+        sink.onload = null;
+        localStorage.setItem("eurovision_sf2_submitted", "1");
+        showSubmittedView();
+      };
+
+      form.submit();
     }
 
     function nameOf(code) {
