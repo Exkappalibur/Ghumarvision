@@ -164,15 +164,17 @@
     /* ─── COUNTRY GRID ─── */
     .country-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 10px;
     }
 
     .country-btn {
-      display: flex;
+      display: grid;
+      grid-template-columns: auto 1fr;
       align-items: center;
-      gap: 8px;
-      padding: 12px 14px;
+      column-gap: 10px;
+      row-gap: 2px;
+      padding: 10px 12px;
       border-radius: 12px;
       border: 1.5px solid var(--muted);
       background: rgba(255, 255, 255, 0.03);
@@ -183,10 +185,31 @@
       transition: all 0.15s;
       text-align: left;
       font-family: inherit;
+      line-height: 1.2;
     }
 
     .country-btn .flag {
-      font-size: 20px;
+      font-size: 22px;
+      grid-row: 1 / span 2;
+    }
+
+    .country-btn .country-name {
+      font-weight: 600;
+    }
+
+    .country-btn .song-meta {
+      grid-column: 2;
+      font-size: 11px;
+      color: var(--ink-soft);
+      opacity: 0.7;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .country-btn.selected .song-meta {
+      opacity: 0.9;
     }
 
     .country-btn.selected {
@@ -453,21 +476,21 @@
     const AIRTABLE_TOKEN = "pat1r3cXICEMUAKUR.d406293dcee267e113fc221d7c94fc040ae684e3ace43a479a6d49a5d9128c47";
 
     const COUNTRIES = [
-      { code: "AL", name: "Albania", flag: "🇦🇱" },
-      { code: "AM", name: "Armenia", flag: "🇦🇲" },
-      { code: "AU", name: "Australia", flag: "🇦🇺" },
-      { code: "AZ", name: "Azerbaijan", flag: "🇦🇿" },
-      { code: "BG", name: "Bulgaria", flag: "🇧🇬" },
-      { code: "CY", name: "Cyprus", flag: "🇨🇾" },
-      { code: "CZ", name: "Czechia", flag: "🇨🇿" },
-      { code: "DK", name: "Denmark", flag: "🇩🇰" },
-      { code: "LV", name: "Latvia", flag: "🇱🇻" },
-      { code: "LU", name: "Luxembourg", flag: "🇱🇺" },
-      { code: "MT", name: "Malta", flag: "🇲🇹" },
-      { code: "NO", name: "Norway", flag: "🇳🇴" },
-      { code: "RO", name: "Romania", flag: "🇷🇴" },
-      { code: "CH", name: "Switzerland", flag: "🇨🇭" },
-      { code: "UA", name: "Ukraine", flag: "🇺🇦" }
+      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân" },
+      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba" },
+      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse" },
+      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go" },
+      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga" },
+      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla" },
+      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads" },
+      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi gå…" },
+      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā" },
+      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature" },
+      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella" },
+      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya" },
+      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me" },
+      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice" },
+      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym" }
     ];
 
     const REQUIRED = 10;
@@ -494,7 +517,7 @@
         btn.type = "button";
         btn.className = "country-btn";
         btn.dataset.code = c.code;
-        btn.innerHTML = `<span class="flag">${c.flag}</span><span>${c.name}</span>`;
+        btn.innerHTML = `<span class="flag">${c.flag}</span><span class="country-name">${c.name}</span><span class="song-meta">${c.artist} — ${c.song}</span>`;
         btn.addEventListener("click", () => toggleQualifier(c.code, btn));
         grid.appendChild(btn);
       });
@@ -506,7 +529,7 @@
         COUNTRIES.forEach(c => {
           const opt = document.createElement("option");
           opt.value = c.code;
-          opt.textContent = `${c.flag}  ${c.name}`;
+          opt.textContent = `${c.flag}  ${c.name} — ${c.song}`;
           sel.appendChild(opt);
         });
         sel.addEventListener("change", updateValidity);
