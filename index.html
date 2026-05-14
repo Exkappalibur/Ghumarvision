@@ -369,6 +369,46 @@
       margin: 0 0 16px;
     }
 
+    .verdict {
+      margin-top: 32px;
+      padding: 24px;
+      border: 1.5px solid var(--muted);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .verdict-banner {
+      font-family: "Bungee", system-ui, sans-serif;
+      font-size: clamp(24px, 6vw, 38px);
+      line-height: 1.1;
+    }
+
+    .verdict-banner.boring { color: var(--ink-soft); }
+    .verdict-banner.risky { color: var(--gold); }
+    .verdict-banner.creative { color: var(--cyan); }
+
+    .verdict-meter {
+      height: 10px;
+      border-radius: 6px;
+      background: var(--muted);
+      margin: 18px 0 12px;
+      overflow: hidden;
+    }
+
+    .verdict-meter-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--cyan), var(--pink));
+      width: 0;
+      transition: width 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .verdict-detail {
+      font-size: 13px;
+      color: var(--ink-soft);
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+    }
+
     .hidden {
       display: none;
     }
@@ -461,6 +501,15 @@
       <p style="color: var(--ink-soft); font-size: 16px; margin-top: 16px;">
         Your picks are saved. See you at the show.
       </p>
+
+      <div class="verdict" id="verdict">
+        <div class="verdict-banner" id="verdict-banner"></div>
+        <div class="verdict-meter">
+          <div class="verdict-meter-fill" id="verdict-meter-fill"></div>
+        </div>
+        <div class="verdict-detail" id="verdict-detail"></div>
+      </div>
+
       <div class="footer-note" style="margin-top: 32px; letter-spacing: 0.2em;">
         14 MAY 2026 · 21:00 CEST
       </div>
@@ -475,22 +524,24 @@
     const AIRTABLE_URL = "https://api.airtable.com/v0/appqidU0p3t0LmJzK/Votes";
     const AIRTABLE_TOKEN = "pat1r3cXICEMUAKUR.d406293dcee267e113fc221d7c94fc040ae684e3ace43a479a6d49a5d9128c47";
 
+    // `chance` = bookmaker qualifying probability (EurovisionWorld, 14 May 2026).
+    // Used to score how closely a submission tracks the betting odds.
     const COUNTRIES = [
-      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân" },
-      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba" },
-      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse" },
-      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go" },
-      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga" },
-      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla" },
-      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads" },
-      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi går hjem" },
-      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā" },
-      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature" },
-      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella" },
-      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya" },
-      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me" },
-      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice" },
-      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym" }
+      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân",            chance: 81 },
+      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba",   chance: 36 },
+      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse",        chance: 95 },
+      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go",        chance: 9 },
+      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga",     chance: 87 },
+      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla",          chance: 66 },
+      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads",     chance: 81 },
+      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi går hjem", chance: 96 },
+      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā",            chance: 45 },
+      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature",  chance: 32 },
+      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella",          chance: 79 },
+      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya",       chance: 61 },
+      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me",       chance: 95 },
+      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice",          chance: 43 },
+      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym",         chance: 94 }
     ];
 
     const REQUIRED = 10;
@@ -498,14 +549,20 @@
     // ─── STATE ──────────────────────────────────────────────────────────────────
     const state = {
       qualifiers: [],
-      pledge: false
+      pledge: true
     };
+
+    const pussySound = new Audio("audio/pussy.mp3");
+    pussySound.volume = 1.0;
 
     // ─── INIT ───────────────────────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       renderCountryGrid();
       populateSelects();
       wireUpForm();
+      // Pledge starts opted in
+      document.getElementById("pledge-btn").classList.add("checked");
+      document.getElementById("pledge-box").textContent = "✓";
       updateValidity();
     });
 
@@ -572,6 +629,12 @@
       const box = document.getElementById("pledge-box");
       btn.classList.toggle("checked", state.pledge);
       box.textContent = state.pledge ? "✓" : "";
+
+      // Backing out of the pledge gets you publicly shamed
+      if (!state.pledge) {
+        pussySound.currentTime = 0;
+        pussySound.play().catch(() => {});
+      }
     }
 
     function updateValidity() {
@@ -639,7 +702,7 @@
           throw new Error("HTTP " + res.status + ": " + body.slice(0, 200));
         }
 
-        showSubmittedView();
+        showSubmittedView(submission.qualifierCodes);
       } catch (e) {
         console.error("[Eurovision pool] submit failed:", e);
         errEl.textContent = `Couldn't save: ${e.message}. Try again?`;
@@ -653,9 +716,47 @@
       return COUNTRIES.find(c => c.code === code)?.name || "";
     }
 
-    function showSubmittedView() {
+    // Scores how closely a set of 10 qualifier picks tracks the bookmaker odds.
+    // 100% = picked the 10 bookie favorites; 0% = picked the 10 longshots.
+    function scoreAgainstOdds(pickedCodes) {
+      const chances = COUNTRIES.map(c => c.chance).sort((a, b) => a - b);
+      const minSum = chances.slice(0, REQUIRED).reduce((a, b) => a + b, 0);
+      const maxSum = chances.slice(-REQUIRED).reduce((a, b) => a + b, 0);
+      const pickedSum = pickedCodes
+        .map(code => COUNTRIES.find(c => c.code === code)?.chance || 0)
+        .reduce((a, b) => a + b, 0);
+      const pct = Math.round(((pickedSum - minSum) / (maxSum - minSum)) * 100);
+      return Math.max(0, Math.min(100, pct));
+    }
+
+    function verdictFor(similarity) {
+      if (similarity >= 80) {
+        return { cls: "boring", label: "Boriiing!", detail: "You basically copied the bookmakers." };
+      }
+      if (similarity >= 45) {
+        return { cls: "risky", label: "Risky!", detail: "A few gambles against the odds. Bold." };
+      }
+      return { cls: "creative", label: "Super Creative!", detail: "You went way off the bookies' script." };
+    }
+
+    function showSubmittedView(pickedCodes) {
       document.getElementById("form-view").classList.add("hidden");
       document.getElementById("submitted-view").classList.remove("hidden");
+
+      if (Array.isArray(pickedCodes) && pickedCodes.length) {
+        const similarity = scoreAgainstOdds(pickedCodes);
+        const v = verdictFor(similarity);
+        const banner = document.getElementById("verdict-banner");
+        banner.textContent = v.label;
+        banner.className = "verdict-banner " + v.cls;
+        document.getElementById("verdict-detail").textContent =
+          `${similarity}% match with the betting odds — ${v.detail}`;
+        requestAnimationFrame(() => {
+          document.getElementById("verdict-meter-fill").style.width = similarity + "%";
+        });
+      } else {
+        document.getElementById("verdict").classList.add("hidden");
+      }
     }
   </script>
 </body>
