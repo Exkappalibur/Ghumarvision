@@ -676,6 +676,8 @@
         wtf: nameOf(document.getElementById("wtf").value)
       };
 
+      const similarity = scoreAgainstOdds(submission.qualifierCodes);
+
       try {
         const res = await fetch(AIRTABLE_URL, {
           method: "POST",
@@ -692,7 +694,8 @@
               "Favorite": submission.favorite,
               "Most Hated": submission.hated,
               "Most WTF": submission.wtf,
-              "Qualifiers": submission.qualifiers.join(", ")
+              "Qualifiers": submission.qualifiers.join(", "),
+              "Odds Match %": similarity
             }
           })
         });
