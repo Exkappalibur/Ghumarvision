@@ -213,11 +213,14 @@
     }
 
     .country-btn.selected {
-      border-color: var(--pink);
-      background: linear-gradient(135deg, rgba(255, 46, 147, 0.25), rgba(0, 229, 255, 0.12));
+      border-color: var(--c1, var(--pink));
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--c1, var(--pink)) 38%, transparent),
+        color-mix(in srgb, var(--c2, var(--cyan)) 22%, transparent));
       color: var(--ink);
       font-weight: 700;
-      box-shadow: 0 0 0 1px var(--pink), 0 4px 20px rgba(255, 46, 147, 0.25);
+      box-shadow: 0 0 0 1px var(--c1, var(--pink)),
+        0 4px 20px color-mix(in srgb, var(--c1, var(--pink)) 32%, transparent);
     }
 
     .country-btn:disabled {
@@ -431,19 +434,21 @@
         <input type="text" id="name" placeholder="So I know who picked what" maxlength="40" />
       </section>
 
+      <!-- Email field disabled — uncomment this section + the email refs in JS to re-enable
       <section>
         <div class="section-label">02 / Your email</div>
         <input type="email" id="email" placeholder="For the confirmation + results" maxlength="120" autocomplete="email" />
       </section>
+      -->
 
       <section>
-        <div class="section-label">03 / The 10 qualifiers</div>
+        <div class="section-label">02 / The 10 qualifiers</div>
         <div class="section-hint" id="qualifier-hint">Pick exactly 10 of 15. Selected: 0 / 10</div>
         <div class="country-grid" id="country-grid"></div>
       </section>
 
       <section>
-        <div class="section-label">04 / Who wins the semi</div>
+        <div class="section-label">03 / Who wins the semi</div>
         <div class="section-hint">Just for fun — won't be officially announced</div>
         <select id="semi-winner" required>
           <option value="" disabled selected>Pick a winner</option>
@@ -451,7 +456,7 @@
       </section>
 
       <section>
-        <div class="section-label">05 / The pledge</div>
+        <div class="section-label">04 / The pledge</div>
         <div class="section-hint">1,000 AMD to the winner. Winner takes the pot.</div>
         <button type="button" class="pledge-btn" id="pledge-btn">
           <div class="pledge-box" id="pledge-box"></div>
@@ -463,7 +468,7 @@
       </section>
 
       <section>
-        <div class="section-label">06 / For fun</div>
+        <div class="section-label">05 / For fun</div>
         <div class="section-hint">No wrong answers. Except there are.</div>
         <div class="fun-group">
           <div>
@@ -526,22 +531,23 @@
 
     // `chance` = bookmaker qualifying probability (EurovisionWorld, 14 May 2026).
     // Used to score how closely a submission tracks the betting odds.
+    // `colors` = two representative flag colors, used for the selected-state highlight.
     const COUNTRIES = [
-      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân",            chance: 81 },
-      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba",   chance: 36 },
-      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse",        chance: 95 },
-      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go",        chance: 9 },
-      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga",     chance: 87 },
-      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla",          chance: 66 },
-      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads",     chance: 81 },
-      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi går hjem", chance: 96 },
-      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā",            chance: 45 },
-      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature",  chance: 32 },
-      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella",          chance: 79 },
-      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya",       chance: 61 },
-      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me",       chance: 95 },
-      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice",          chance: 43 },
-      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym",         chance: 94 }
+      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân",            chance: 81, colors: ["#E41E20", "#000000"] },
+      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba",   chance: 36, colors: ["#D90012", "#0033A0"] },
+      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse",        chance: 95, colors: ["#012169", "#E4002B"] },
+      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go",        chance: 9,  colors: ["#00B5E2", "#509E2F"] },
+      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga",     chance: 87, colors: ["#00966E", "#D62612"] },
+      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla",          chance: 66, colors: ["#D57800", "#4E5B31"] },
+      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads",     chance: 81, colors: ["#11457E", "#D7141A"] },
+      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi går hjem", chance: 96, colors: ["#C8102E", "#FFFFFF"] },
+      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā",            chance: 45, colors: ["#9E3039", "#FFFFFF"] },
+      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature",  chance: 32, colors: ["#ED2939", "#00A1DE"] },
+      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella",          chance: 79, colors: ["#CF142B", "#FFFFFF"] },
+      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya",       chance: 61, colors: ["#BA0C2F", "#00205B"] },
+      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me",       chance: 95, colors: ["#002B7F", "#FCD116"] },
+      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice",          chance: 43, colors: ["#DA291C", "#FFFFFF"] },
+      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym",         chance: 94, colors: ["#0057B7", "#FFD700"] }
     ];
 
     const REQUIRED = 10;
@@ -595,7 +601,7 @@
 
     function wireUpForm() {
       document.getElementById("name").addEventListener("input", updateValidity);
-      document.getElementById("email").addEventListener("input", updateValidity);
+      // document.getElementById("email").addEventListener("input", updateValidity);
       document.getElementById("pledge-btn").addEventListener("click", togglePledge);
       document.getElementById("submit-btn").addEventListener("click", handleSubmit);
     }
@@ -606,9 +612,16 @@
       if (idx >= 0) {
         state.qualifiers.splice(idx, 1);
         btn.classList.remove("selected");
+        btn.style.removeProperty("--c1");
+        btn.style.removeProperty("--c2");
       } else if (state.qualifiers.length < REQUIRED) {
         state.qualifiers.push(code);
         btn.classList.add("selected");
+        const colors = COUNTRIES.find(c => c.code === code)?.colors;
+        if (colors) {
+          btn.style.setProperty("--c1", colors[0]);
+          btn.style.setProperty("--c2", colors[1]);
+        }
       }
       // Disable unselected if at limit
       document.querySelectorAll(".country-btn").forEach(b => {
@@ -639,10 +652,10 @@
 
     function updateValidity() {
       const name = document.getElementById("name").value.trim();
-      const email = document.getElementById("email").value.trim();
+      // const email = document.getElementById("email").value.trim();
       const ok =
         name.length > 0 &&
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+        // /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
         state.qualifiers.length === REQUIRED &&
         document.getElementById("semi-winner").value &&
         document.getElementById("favorite").value &&
@@ -666,7 +679,7 @@
       const submission = {
         timestamp: new Date().toISOString(),
         name: document.getElementById("name").value.trim(),
-        email: document.getElementById("email").value.trim(),
+        // email: document.getElementById("email").value.trim(),
         pledge: state.pledge,
         semiWinner: nameOf(document.getElementById("semi-winner").value),
         qualifiers: state.qualifiers.map(nameOf),
@@ -688,7 +701,7 @@
           body: JSON.stringify({
             fields: {
               "Name": submission.name,
-              "Email": submission.email,
+              // "Email": submission.email,
               "Pledged": !!submission.pledge,
               "Semi Winner": submission.semiWinner,
               "Favorite": submission.favorite,
