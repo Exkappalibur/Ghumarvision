@@ -14,17 +14,27 @@ The form POSTs directly to the Airtable REST API. The personal access token (PAT
 
 ## Airtable schema
 
-Base: `appqidU0p3t0LmJzK` · Table: `Votes`
+Base: `appqidU0p3t0LmJzK`
+
+### Final Votes (Grand Final — current)
 
 | Field | Type |
 |---|---|
 | Name | Single line text (primary) |
 | Pledged | Checkbox |
-| Semi Winner | Single line text |
+| Top 10 | Long text (comma-separated country names) |
+| Top 5 | Long text (comma-separated country names) |
+| Overall Winner | Single line text |
+| Televote Winner | Single line text |
+| Jury Winner | Single line text |
 | Favorite | Single line text |
 | Most Hated | Single line text |
 | Most WTF | Single line text |
-| Qualifiers | Long text (comma-separated country names) |
+| Odds Match % | Number |
+
+### Votes (Semi-Final 2 — archive)
+
+The original Semi 2 submissions live in the `Votes` table — left intact for reference.
 
 ## Rotating the token
 

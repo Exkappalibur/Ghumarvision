@@ -421,8 +421,8 @@
     <!-- ─── FORM VIEW ─── -->
     <div id="form-view">
       <header>
-        <div class="eyebrow">◆ Vienna · 14 May 2026 · 21:00 CEST ◆</div>
-        <h1>EUROVISION<br />SEMI 2 POOL</h1>
+        <div class="eyebrow">◆ Vienna · 16 May 2026 · 21:00 CEST ◆</div>
+        <h1>EUROVISION<br />GRAND FINAL POOL</h1>
         <div class="subtitle">Lock in your picks. One shot, no edits.</div>
       </header>
 
@@ -431,29 +431,44 @@
         <input type="text" id="name" placeholder="So I know who picked what" maxlength="40" />
       </section>
 
-      <!-- Email field disabled — uncomment this section + the email refs in JS to re-enable
       <section>
-        <div class="section-label">02 / Your email</div>
-        <input type="email" id="email" placeholder="For the confirmation + results" maxlength="120" autocomplete="email" />
-      </section>
-      -->
-
-      <section>
-        <div class="section-label">02 / The 10 qualifiers</div>
-        <div class="section-hint" id="qualifier-hint">Pick exactly 10 of 15. Selected: 0 / 10</div>
+        <div class="section-label">02 / Your Top 10</div>
+        <div class="section-hint" id="top10-hint">Pick the 10 countries you think finish top 10. Selected: 0 / 10</div>
         <div class="country-grid" id="country-grid"></div>
       </section>
 
       <section>
-        <div class="section-label">03 / Who wins the semi</div>
-        <div class="section-hint">Just for fun — won't be officially announced</div>
-        <select id="semi-winner" required>
-          <option value="" disabled selected>Pick a winner</option>
+        <div class="section-label">03 / Your Top 5</div>
+        <div class="section-hint" id="top5-hint">Narrow your Top 10 down to your Top 5.</div>
+        <div class="country-grid" id="top5-grid"></div>
+      </section>
+
+      <section>
+        <div class="section-label">04 / Overall winner</div>
+        <div class="section-hint">Who lifts the trophy.</div>
+        <select id="winner" required>
+          <option value="" disabled selected>Pick the winner</option>
         </select>
       </section>
 
       <section>
-        <div class="section-label">04 / The pledge</div>
+        <div class="section-label">05 / Televote winner</div>
+        <div class="section-hint">Who tops the public vote.</div>
+        <select id="televote" required>
+          <option value="" disabled selected>Pick the televote winner</option>
+        </select>
+      </section>
+
+      <section>
+        <div class="section-label">06 / Jury winner</div>
+        <div class="section-hint">Who tops the jury vote.</div>
+        <select id="jury" required>
+          <option value="" disabled selected>Pick the jury winner</option>
+        </select>
+      </section>
+
+      <section>
+        <div class="section-label">07 / The pledge</div>
         <div class="section-hint">1,000 AMD to the winner. Winner takes the pot.</div>
         <button type="button" class="pledge-btn" id="pledge-btn">
           <div class="pledge-box" id="pledge-box"></div>
@@ -465,7 +480,7 @@
       </section>
 
       <section>
-        <div class="section-label">05 / For fun</div>
+        <div class="section-label">08 / For fun</div>
         <div class="section-hint">No wrong answers. Except there are.</div>
         <div class="fun-group">
           <div>
@@ -513,7 +528,7 @@
       </div>
 
       <div class="footer-note" style="margin-top: 32px; letter-spacing: 0.2em;">
-        14 MAY 2026 · 21:00 CEST
+        16 MAY 2026 · 21:00 CEST
       </div>
     </div>
 
@@ -523,34 +538,46 @@
     // ─── CONFIG ─────────────────────────────────────────────────────────────────
     // Airtable base + token. The token is scoped to one base and write-only via
     // field constraints, so exposure is low-risk for a closed Eurovision pool.
-    const AIRTABLE_URL = "https://api.airtable.com/v0/appqidU0p3t0LmJzK/Votes";
+    const AIRTABLE_URL = "https://api.airtable.com/v0/appqidU0p3t0LmJzK/Final%20Votes";
     const AIRTABLE_TOKEN = "pat1r3cXICEMUAKUR.d406293dcee267e113fc221d7c94fc040ae684e3ace43a479a6d49a5d9128c47";
 
-    // `chance` = bookmaker qualifying probability (EurovisionWorld, 14 May 2026).
+    // `chance` = bookmaker winner probability (EurovisionWorld, 15 May 2026).
     // Used to score how closely a submission tracks the betting odds.
     const COUNTRIES = [
-      { code: "AL", name: "Albania",     flag: "🇦🇱", artist: "Alis",              song: "Nân",            chance: 81 },
-      { code: "AM", name: "Armenia",     flag: "🇦🇲", artist: "Simón",             song: "Paloma Rumba",   chance: 36 },
-      { code: "AU", name: "Australia",   flag: "🇦🇺", artist: "Delta Goodrem",     song: "Eclipse",        chance: 95 },
-      { code: "AZ", name: "Azerbaijan",  flag: "🇦🇿", artist: "Jiva",              song: "Just Go",        chance: 9 },
-      { code: "BG", name: "Bulgaria",    flag: "🇧🇬", artist: "Dara",              song: "Bangaranga",     chance: 87 },
-      { code: "CY", name: "Cyprus",      flag: "🇨🇾", artist: "Antigoni",          song: "Jalla",          chance: 66 },
-      { code: "CZ", name: "Czechia",     flag: "🇨🇿", artist: "Daniel Žižka",      song: "Crossroads",     chance: 81 },
-      { code: "DK", name: "Denmark",     flag: "🇩🇰", artist: "Torpegaard Lund",   song: "Før vi går hjem", chance: 96 },
-      { code: "LV", name: "Latvia",      flag: "🇱🇻", artist: "Atvara",            song: "Ēnā",            chance: 45 },
-      { code: "LU", name: "Luxembourg",  flag: "🇱🇺", artist: "Marija",            song: "Mother Nature",  chance: 32 },
-      { code: "MT", name: "Malta",       flag: "🇲🇹", artist: "Aidan",             song: "Bella",          chance: 79 },
-      { code: "NO", name: "Norway",      flag: "🇳🇴", artist: "Jonas Lovv",        song: "Ya ya ya",       chance: 61 },
-      { code: "RO", name: "Romania",     flag: "🇷🇴", artist: "A. Căpitănescu",    song: "Choke Me",       chance: 95 },
-      { code: "CH", name: "Switzerland", flag: "🇨🇭", artist: "Veronica Fusaro",   song: "Alice",          chance: 43 },
-      { code: "UA", name: "Ukraine",     flag: "🇺🇦", artist: "Leléka",            song: "Ridnym",         chance: 94 }
+      { code: "AL", name: "Albania",        flag: "🇦🇱", artist: "Alis",                    song: "Nân",              chance: 1 },
+      { code: "AU", name: "Australia",      flag: "🇦🇺", artist: "Delta Goodrem",           song: "Eclipse",          chance: 11 },
+      { code: "AT", name: "Austria",        flag: "🇦🇹", artist: "Cosmó",                   song: "Tanzschein",       chance: 0.5 },
+      { code: "BE", name: "Belgium",        flag: "🇧🇪", artist: "Essyla",                  song: "Dancing on the Ice", chance: 0.5 },
+      { code: "BG", name: "Bulgaria",       flag: "🇧🇬", artist: "Dara",                    song: "Bangaranga",       chance: 3 },
+      { code: "HR", name: "Croatia",        flag: "🇭🇷", artist: "Lelek",                   song: "Andromeda",        chance: 1 },
+      { code: "CY", name: "Cyprus",         flag: "🇨🇾", artist: "Antigoni",                song: "Jalla",            chance: 1 },
+      { code: "CZ", name: "Czechia",        flag: "🇨🇿", artist: "Daniel Žižka",            song: "Crossroads",       chance: 1 },
+      { code: "DK", name: "Denmark",        flag: "🇩🇰", artist: "Søren Torpegaard",        song: "Før vi går hjem",  chance: 9 },
+      { code: "FI", name: "Finland",        flag: "🇫🇮", artist: "Lampenius & Parkkonen",   song: "Liekinheitin",     chance: 38 },
+      { code: "FR", name: "France",         flag: "🇫🇷", artist: "Monroe",                  song: "Regarde !",        chance: 4 },
+      { code: "DE", name: "Germany",        flag: "🇩🇪", artist: "Sarah Engels",            song: "Fire",             chance: 0.5 },
+      { code: "GR", name: "Greece",         flag: "🇬🇷", artist: "Akylas",                  song: "Ferto",            chance: 11 },
+      { code: "IL", name: "Israel",         flag: "🇮🇱", artist: "Noam Bettan",             song: "Michelle",         chance: 7 },
+      { code: "IT", name: "Italy",          flag: "🇮🇹", artist: "Sal Da Vinci",            song: "Per sempre sì",    chance: 2 },
+      { code: "LT", name: "Lithuania",      flag: "🇱🇹", artist: "Lion Ceccah",             song: "Sólo quiero más",  chance: 0.5 },
+      { code: "MT", name: "Malta",          flag: "🇲🇹", artist: "Aidan",                   song: "Bella",            chance: 2 },
+      { code: "MD", name: "Moldova",        flag: "🇲🇩", artist: "Satoshi",                 song: "Viva, Moldova",    chance: 1 },
+      { code: "NO", name: "Norway",         flag: "🇳🇴", artist: "Jonas Lovv",              song: "Ya ya ya",         chance: 0.5 },
+      { code: "PL", name: "Poland",         flag: "🇵🇱", artist: "Alicja",                  song: "Pray",             chance: 0.5 },
+      { code: "RO", name: "Romania",        flag: "🇷🇴", artist: "A. Căpitănescu",          song: "Choke Me",         chance: 3 },
+      { code: "RS", name: "Serbia",         flag: "🇷🇸", artist: "Lavina",                  song: "Kraj mene",        chance: 0.5 },
+      { code: "SE", name: "Sweden",         flag: "🇸🇪", artist: "Felicia",                 song: "My System",        chance: 1 },
+      { code: "UA", name: "Ukraine",        flag: "🇺🇦", artist: "Leléka",                  song: "Ridnym",           chance: 2 },
+      { code: "GB", name: "United Kingdom", flag: "🇬🇧", artist: "Look Mum No Computer",    song: "Einz, Zwei, Drei", chance: 0.5 }
     ];
 
-    const REQUIRED = 10;
+    const REQUIRED_TOP10 = 10;
+    const REQUIRED_TOP5 = 5;
 
     // ─── STATE ──────────────────────────────────────────────────────────────────
     const state = {
-      qualifiers: [],
+      top10: [],
+      top5: [],
       pledge: true
     };
 
@@ -560,6 +587,7 @@
     // ─── INIT ───────────────────────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       renderCountryGrid();
+      renderTop5Grid();
       populateSelects();
       wireUpForm();
       // Pledge starts opted in
@@ -577,13 +605,39 @@
         btn.className = "country-btn";
         btn.dataset.code = c.code;
         btn.innerHTML = `<span class="flag">${c.flag}</span><span class="country-name">${c.name}</span><span class="song-meta">${c.artist} — ${c.song}</span>`;
-        btn.addEventListener("click", () => toggleQualifier(c.code, btn));
+        btn.addEventListener("click", () => toggleTop10(c.code, btn));
         grid.appendChild(btn);
       });
     }
 
+    // The Top 5 grid only contains the countries currently in the Top 10.
+    function renderTop5Grid() {
+      const grid = document.getElementById("top5-grid");
+      grid.innerHTML = "";
+
+      if (state.top10.length < REQUIRED_TOP10) {
+        grid.innerHTML = `<div class="section-hint" style="grid-column: 1 / -1; margin: 0;">Finish your Top 10 first — then pick your Top 5 from it.</div>`;
+        document.getElementById("top5-hint").textContent =
+          "Narrow your Top 10 down to your Top 5.";
+        return;
+      }
+
+      state.top10.forEach(code => {
+        const c = COUNTRIES.find(x => x.code === code);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "country-btn";
+        btn.dataset.code = c.code;
+        if (state.top5.includes(code)) btn.classList.add("selected");
+        btn.innerHTML = `<span class="flag">${c.flag}</span><span class="country-name">${c.name}</span><span class="song-meta">${c.artist} — ${c.song}</span>`;
+        btn.addEventListener("click", () => toggleTop5(c.code, btn));
+        grid.appendChild(btn);
+      });
+      updateTop5State();
+    }
+
     function populateSelects() {
-      ["semi-winner", "favorite", "hated", "wtf"].forEach(id => {
+      ["winner", "televote", "jury", "favorite", "hated", "wtf"].forEach(id => {
         const sel = document.getElementById(id);
         COUNTRIES.forEach(c => {
           const opt = document.createElement("option");
@@ -597,32 +651,52 @@
 
     function wireUpForm() {
       document.getElementById("name").addEventListener("input", updateValidity);
-      // document.getElementById("email").addEventListener("input", updateValidity);
       document.getElementById("pledge-btn").addEventListener("click", togglePledge);
       document.getElementById("submit-btn").addEventListener("click", handleSubmit);
     }
 
     // ─── INTERACTIONS ───────────────────────────────────────────────────────────
-    function toggleQualifier(code, btn) {
-      const idx = state.qualifiers.indexOf(code);
+    function toggleTop10(code, btn) {
+      const idx = state.top10.indexOf(code);
       if (idx >= 0) {
-        state.qualifiers.splice(idx, 1);
+        state.top10.splice(idx, 1);
         btn.classList.remove("selected");
-      } else if (state.qualifiers.length < REQUIRED) {
-        state.qualifiers.push(code);
+        // Dropping a country from Top 10 also drops it from Top 5
+        const t5 = state.top5.indexOf(code);
+        if (t5 >= 0) state.top5.splice(t5, 1);
+      } else if (state.top10.length < REQUIRED_TOP10) {
+        state.top10.push(code);
         btn.classList.add("selected");
       }
-      // Disable unselected if at limit
-      document.querySelectorAll(".country-btn").forEach(b => {
-        if (!state.qualifiers.includes(b.dataset.code)) {
-          b.disabled = state.qualifiers.length >= REQUIRED;
-        } else {
-          b.disabled = false;
-        }
+      // Disable unselected Top 10 buttons once at the limit
+      document.querySelectorAll("#country-grid .country-btn").forEach(b => {
+        b.disabled = !state.top10.includes(b.dataset.code) && state.top10.length >= REQUIRED_TOP10;
       });
-      document.getElementById("qualifier-hint").textContent =
-        `Pick exactly 10 of 15. Selected: ${state.qualifiers.length} / ${REQUIRED}`;
+      document.getElementById("top10-hint").textContent =
+        `Pick the 10 countries you think finish top 10. Selected: ${state.top10.length} / ${REQUIRED_TOP10}`;
+      renderTop5Grid();
       updateValidity();
+    }
+
+    function toggleTop5(code, btn) {
+      const idx = state.top5.indexOf(code);
+      if (idx >= 0) {
+        state.top5.splice(idx, 1);
+        btn.classList.remove("selected");
+      } else if (state.top5.length < REQUIRED_TOP5) {
+        state.top5.push(code);
+        btn.classList.add("selected");
+      }
+      updateTop5State();
+      updateValidity();
+    }
+
+    function updateTop5State() {
+      document.querySelectorAll("#top5-grid .country-btn").forEach(b => {
+        b.disabled = !state.top5.includes(b.dataset.code) && state.top5.length >= REQUIRED_TOP5;
+      });
+      document.getElementById("top5-hint").textContent =
+        `Narrow your Top 10 down to your Top 5. Selected: ${state.top5.length} / ${REQUIRED_TOP5}`;
     }
 
     function togglePledge() {
@@ -641,12 +715,13 @@
 
     function updateValidity() {
       const name = document.getElementById("name").value.trim();
-      // const email = document.getElementById("email").value.trim();
       const ok =
         name.length > 0 &&
-        // /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
-        state.qualifiers.length === REQUIRED &&
-        document.getElementById("semi-winner").value &&
+        state.top10.length === REQUIRED_TOP10 &&
+        state.top5.length === REQUIRED_TOP5 &&
+        document.getElementById("winner").value &&
+        document.getElementById("televote").value &&
+        document.getElementById("jury").value &&
         document.getElementById("favorite").value &&
         document.getElementById("hated").value &&
         document.getElementById("wtf").value;
@@ -668,17 +743,19 @@
       const submission = {
         timestamp: new Date().toISOString(),
         name: document.getElementById("name").value.trim(),
-        // email: document.getElementById("email").value.trim(),
         pledge: state.pledge,
-        semiWinner: nameOf(document.getElementById("semi-winner").value),
-        qualifiers: state.qualifiers.map(nameOf),
-        qualifierCodes: state.qualifiers.slice(),
+        top10: state.top10.map(nameOf),
+        top10Codes: state.top10.slice(),
+        top5: state.top5.map(nameOf),
+        winner: nameOf(document.getElementById("winner").value),
+        televote: nameOf(document.getElementById("televote").value),
+        jury: nameOf(document.getElementById("jury").value),
         favorite: nameOf(document.getElementById("favorite").value),
         hated: nameOf(document.getElementById("hated").value),
         wtf: nameOf(document.getElementById("wtf").value)
       };
 
-      const similarity = scoreAgainstOdds(submission.qualifierCodes);
+      const similarity = scoreAgainstOdds(submission.top10Codes);
 
       try {
         const res = await fetch(AIRTABLE_URL, {
@@ -690,13 +767,15 @@
           body: JSON.stringify({
             fields: {
               "Name": submission.name,
-              // "Email": submission.email,
               "Pledged": !!submission.pledge,
-              "Semi Winner": submission.semiWinner,
+              "Top 10": submission.top10.join(", "),
+              "Top 5": submission.top5.join(", "),
+              "Overall Winner": submission.winner,
+              "Televote Winner": submission.televote,
+              "Jury Winner": submission.jury,
               "Favorite": submission.favorite,
               "Most Hated": submission.hated,
               "Most WTF": submission.wtf,
-              "Qualifiers": submission.qualifiers.join(", "),
               "Odds Match %": similarity
             }
           })
@@ -707,7 +786,7 @@
           throw new Error("HTTP " + res.status + ": " + body.slice(0, 200));
         }
 
-        showSubmittedView(submission.qualifierCodes);
+        showSubmittedView(submission.top10Codes);
       } catch (e) {
         console.error("[Eurovision pool] submit failed:", e);
         errEl.textContent = `Couldn't save: ${e.message}. Try again?`;
@@ -721,12 +800,12 @@
       return COUNTRIES.find(c => c.code === code)?.name || "";
     }
 
-    // Scores how closely a set of 10 qualifier picks tracks the bookmaker odds.
+    // Scores how closely a set of 10 Top 10 picks tracks the bookmaker odds.
     // 100% = picked the 10 bookie favorites; 0% = picked the 10 longshots.
     function scoreAgainstOdds(pickedCodes) {
       const chances = COUNTRIES.map(c => c.chance).sort((a, b) => a - b);
-      const minSum = chances.slice(0, REQUIRED).reduce((a, b) => a + b, 0);
-      const maxSum = chances.slice(-REQUIRED).reduce((a, b) => a + b, 0);
+      const minSum = chances.slice(0, REQUIRED_TOP10).reduce((a, b) => a + b, 0);
+      const maxSum = chances.slice(-REQUIRED_TOP10).reduce((a, b) => a + b, 0);
       const pickedSum = pickedCodes
         .map(code => COUNTRIES.find(c => c.code === code)?.chance || 0)
         .reduce((a, b) => a + b, 0);
