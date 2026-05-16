@@ -541,34 +541,38 @@
     const AIRTABLE_URL = "https://api.airtable.com/v0/appqidU0p3t0LmJzK/Final%20Votes";
     const AIRTABLE_TOKEN = "pat1r3cXICEMUAKUR.d406293dcee267e113fc221d7c94fc040ae684e3ace43a479a6d49a5d9128c47";
 
-    // `chance` = bookmaker winner probability (EurovisionWorld, 15 May 2026).
-    // Used to score how closely a submission tracks the betting odds.
+    // Bookmaker odds from EurovisionWorld, 15 May 2026.
+    //   oddsTop10 = % chance to finish top 10
+    //   oddsTop5  = % chance to finish top 5
+    //   oddsWin   = % chance to win outright
+    // For countries not on the published shortlist for a category, sensible
+    // defaults are used (top10:25, top5:8, win:0.5) — close enough for scoring.
     const COUNTRIES = [
-      { code: "AL", name: "Albania",        flag: "🇦🇱", artist: "Alis",                    song: "Nân",              chance: 1 },
-      { code: "AU", name: "Australia",      flag: "🇦🇺", artist: "Delta Goodrem",           song: "Eclipse",          chance: 11 },
-      { code: "AT", name: "Austria",        flag: "🇦🇹", artist: "Cosmó",                   song: "Tanzschein",       chance: 0.5 },
-      { code: "BE", name: "Belgium",        flag: "🇧🇪", artist: "Essyla",                  song: "Dancing on the Ice", chance: 0.5 },
-      { code: "BG", name: "Bulgaria",       flag: "🇧🇬", artist: "Dara",                    song: "Bangaranga",       chance: 3 },
-      { code: "HR", name: "Croatia",        flag: "🇭🇷", artist: "Lelek",                   song: "Andromeda",        chance: 1 },
-      { code: "CY", name: "Cyprus",         flag: "🇨🇾", artist: "Antigoni",                song: "Jalla",            chance: 1 },
-      { code: "CZ", name: "Czechia",        flag: "🇨🇿", artist: "Daniel Žižka",            song: "Crossroads",       chance: 1 },
-      { code: "DK", name: "Denmark",        flag: "🇩🇰", artist: "Søren Torpegaard",        song: "Før vi går hjem",  chance: 9 },
-      { code: "FI", name: "Finland",        flag: "🇫🇮", artist: "Lampenius & Parkkonen",   song: "Liekinheitin",     chance: 38 },
-      { code: "FR", name: "France",         flag: "🇫🇷", artist: "Monroe",                  song: "Regarde !",        chance: 4 },
-      { code: "DE", name: "Germany",        flag: "🇩🇪", artist: "Sarah Engels",            song: "Fire",             chance: 0.5 },
-      { code: "GR", name: "Greece",         flag: "🇬🇷", artist: "Akylas",                  song: "Ferto",            chance: 11 },
-      { code: "IL", name: "Israel",         flag: "🇮🇱", artist: "Noam Bettan",             song: "Michelle",         chance: 7 },
-      { code: "IT", name: "Italy",          flag: "🇮🇹", artist: "Sal Da Vinci",            song: "Per sempre sì",    chance: 2 },
-      { code: "LT", name: "Lithuania",      flag: "🇱🇹", artist: "Lion Ceccah",             song: "Sólo quiero más",  chance: 0.5 },
-      { code: "MT", name: "Malta",          flag: "🇲🇹", artist: "Aidan",                   song: "Bella",            chance: 2 },
-      { code: "MD", name: "Moldova",        flag: "🇲🇩", artist: "Satoshi",                 song: "Viva, Moldova",    chance: 1 },
-      { code: "NO", name: "Norway",         flag: "🇳🇴", artist: "Jonas Lovv",              song: "Ya ya ya",         chance: 0.5 },
-      { code: "PL", name: "Poland",         flag: "🇵🇱", artist: "Alicja",                  song: "Pray",             chance: 0.5 },
-      { code: "RO", name: "Romania",        flag: "🇷🇴", artist: "A. Căpitănescu",          song: "Choke Me",         chance: 3 },
-      { code: "RS", name: "Serbia",         flag: "🇷🇸", artist: "Lavina",                  song: "Kraj mene",        chance: 0.5 },
-      { code: "SE", name: "Sweden",         flag: "🇸🇪", artist: "Felicia",                 song: "My System",        chance: 1 },
-      { code: "UA", name: "Ukraine",        flag: "🇺🇦", artist: "Leléka",                  song: "Ridnym",           chance: 2 },
-      { code: "GB", name: "United Kingdom", flag: "🇬🇧", artist: "Look Mum No Computer",    song: "Einz, Zwei, Drei", chance: 0.5 }
+      { code: "AL", name: "Albania",        flag: "🇦🇱", artist: "Alis",                  song: "Nân",              oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "AU", name: "Australia",      flag: "🇦🇺", artist: "Delta Goodrem",         song: "Eclipse",          oddsTop10: 89, oddsTop5: 71, oddsWin: 23 },
+      { code: "AT", name: "Austria",        flag: "🇦🇹", artist: "Cosmó",                 song: "Tanzschein",       oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "BE", name: "Belgium",        flag: "🇧🇪", artist: "Essyla",                song: "Dancing on the Ice", oddsTop10: 25, oddsTop5: 8, oddsWin: 0.5 },
+      { code: "BG", name: "Bulgaria",       flag: "🇧🇬", artist: "Dara",                  song: "Bangaranga",       oddsTop10: 76, oddsTop5: 46, oddsWin: 7 },
+      { code: "HR", name: "Croatia",        flag: "🇭🇷", artist: "Lelek",                 song: "Andromeda",        oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "CY", name: "Cyprus",         flag: "🇨🇾", artist: "Antigoni",              song: "Jalla",            oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "CZ", name: "Czechia",        flag: "🇨🇿", artist: "Daniel Žižka",          song: "Crossroads",       oddsTop10: 25, oddsTop5: 8,  oddsWin: 1 },
+      { code: "DK", name: "Denmark",        flag: "🇩🇰", artist: "Søren Torpegaard",      song: "Før vi går hjem",  oddsTop10: 67, oddsTop5: 25, oddsWin: 2 },
+      { code: "FI", name: "Finland",        flag: "🇫🇮", artist: "Lampenius & Parkkonen", song: "Liekinheitin",     oddsTop10: 91, oddsTop5: 81, oddsWin: 40 },
+      { code: "FR", name: "France",         flag: "🇫🇷", artist: "Monroe",                song: "Regarde !",        oddsTop10: 56, oddsTop5: 20, oddsWin: 1 },
+      { code: "DE", name: "Germany",        flag: "🇩🇪", artist: "Sarah Engels",          song: "Fire",             oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "GR", name: "Greece",         flag: "🇬🇷", artist: "Akylas",                song: "Ferto",            oddsTop10: 80, oddsTop5: 49, oddsWin: 6 },
+      { code: "IL", name: "Israel",         flag: "🇮🇱", artist: "Noam Bettan",           song: "Michelle",         oddsTop10: 86, oddsTop5: 62, oddsWin: 5 },
+      { code: "IT", name: "Italy",          flag: "🇮🇹", artist: "Sal Da Vinci",          song: "Per sempre sì",    oddsTop10: 63, oddsTop5: 22, oddsWin: 2 },
+      { code: "LT", name: "Lithuania",      flag: "🇱🇹", artist: "Lion Ceccah",           song: "Sólo quiero más",  oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "MT", name: "Malta",          flag: "🇲🇹", artist: "Aidan",                 song: "Bella",            oddsTop10: 25, oddsTop5: 8,  oddsWin: 1 },
+      { code: "MD", name: "Moldova",        flag: "🇲🇩", artist: "Satoshi",               song: "Viva, Moldova",    oddsTop10: 25, oddsTop5: 8,  oddsWin: 1 },
+      { code: "NO", name: "Norway",         flag: "🇳🇴", artist: "Jonas Lovv",            song: "Ya ya ya",         oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "PL", name: "Poland",         flag: "🇵🇱", artist: "Alicja",                song: "Pray",             oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "RO", name: "Romania",        flag: "🇷🇴", artist: "A. Căpitănescu",        song: "Choke Me",         oddsTop10: 75, oddsTop5: 26, oddsWin: 4 },
+      { code: "RS", name: "Serbia",         flag: "🇷🇸", artist: "Lavina",                song: "Kraj mene",        oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 },
+      { code: "SE", name: "Sweden",         flag: "🇸🇪", artist: "Felicia",               song: "My System",        oddsTop10: 25, oddsTop5: 8,  oddsWin: 1 },
+      { code: "UA", name: "Ukraine",        flag: "🇺🇦", artist: "Leléka",                song: "Ridnym",           oddsTop10: 64, oddsTop5: 22, oddsWin: 1 },
+      { code: "GB", name: "United Kingdom", flag: "🇬🇧", artist: "Look Mum No Computer",  song: "Einz, Zwei, Drei", oddsTop10: 25, oddsTop5: 8,  oddsWin: 0.5 }
     ];
 
     const REQUIRED_TOP10 = 10;
@@ -755,7 +759,9 @@
         wtf: nameOf(document.getElementById("wtf").value)
       };
 
-      const similarity = scoreAgainstOdds(submission.top10Codes);
+      const winnerCode = document.getElementById("winner").value;
+      const top5Codes = state.top5.slice();
+      const scores = scoreAgainstOdds(submission.top10Codes, top5Codes, winnerCode);
 
       try {
         const res = await fetch(AIRTABLE_URL, {
@@ -776,7 +782,10 @@
               "Favorite": submission.favorite,
               "Most Hated": submission.hated,
               "Most WTF": submission.wtf,
-              "Odds Match %": similarity
+              "Top 10 Match %": scores.top10,
+              "Top 5 Match %": scores.top5,
+              "Winner Match %": scores.winner,
+              "Odds Match %": scores.overall
             }
           })
         });
@@ -786,7 +795,7 @@
           throw new Error("HTTP " + res.status + ": " + body.slice(0, 200));
         }
 
-        showSubmittedView(submission.top10Codes);
+        showSubmittedView(scores);
       } catch (e) {
         console.error("[Eurovision pool] submit failed:", e);
         errEl.textContent = `Couldn't save: ${e.message}. Try again?`;
@@ -800,16 +809,36 @@
       return COUNTRIES.find(c => c.code === code)?.name || "";
     }
 
-    // Scores how closely a set of 10 Top 10 picks tracks the bookmaker odds.
-    // 100% = picked the 10 bookie favorites; 0% = picked the 10 longshots.
-    function scoreAgainstOdds(pickedCodes) {
-      const chances = COUNTRIES.map(c => c.chance).sort((a, b) => a - b);
-      const minSum = chances.slice(0, REQUIRED_TOP10).reduce((a, b) => a + b, 0);
-      const maxSum = chances.slice(-REQUIRED_TOP10).reduce((a, b) => a + b, 0);
-      const pickedSum = pickedCodes
-        .map(code => COUNTRIES.find(c => c.code === code)?.chance || 0)
+    // Returns { top10, top5, winner, overall } — each 0–100, where 100 = picked
+    // exactly the bookie favorites for that category and 0 = picked the longshots.
+    // Overall is the simple average of the three.
+    function scoreAgainstOdds(top10Codes, top5Codes, winnerCode) {
+      const t10 = scoreCategory(top10Codes, "oddsTop10", REQUIRED_TOP10);
+      const t5  = scoreCategory(top5Codes,  "oddsTop5",  REQUIRED_TOP5);
+      const win = scoreSingle(winnerCode, "oddsWin");
+      const overall = Math.round((t10 + t5 + win) / 3);
+      return { top10: t10, top5: t5, winner: win, overall };
+    }
+
+    function scoreCategory(codes, field, n) {
+      const vals = COUNTRIES.map(c => c[field]).sort((a, b) => a - b);
+      const minSum = vals.slice(0, n).reduce((a, b) => a + b, 0);
+      const maxSum = vals.slice(-n).reduce((a, b) => a + b, 0);
+      const sum = codes
+        .map(code => COUNTRIES.find(c => c.code === code)?.[field] || 0)
         .reduce((a, b) => a + b, 0);
-      const pct = Math.round(((pickedSum - minSum) / (maxSum - minSum)) * 100);
+      if (maxSum === minSum) return 0;
+      const pct = Math.round(((sum - minSum) / (maxSum - minSum)) * 100);
+      return Math.max(0, Math.min(100, pct));
+    }
+
+    function scoreSingle(code, field) {
+      const vals = COUNTRIES.map(c => c[field]);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const picked = COUNTRIES.find(c => c.code === code)?.[field] || 0;
+      if (max === min) return 0;
+      const pct = Math.round(((picked - min) / (max - min)) * 100);
       return Math.max(0, Math.min(100, pct));
     }
 
@@ -823,20 +852,22 @@
       return { cls: "creative", label: "Super Creative!", detail: "You went way off the bookies' script." };
     }
 
-    function showSubmittedView(pickedCodes) {
+    function showSubmittedView(scores) {
       document.getElementById("form-view").classList.add("hidden");
       document.getElementById("submitted-view").classList.remove("hidden");
 
-      if (Array.isArray(pickedCodes) && pickedCodes.length) {
-        const similarity = scoreAgainstOdds(pickedCodes);
-        const v = verdictFor(similarity);
+      if (scores && typeof scores.overall === "number") {
+        const v = verdictFor(scores.overall);
         const banner = document.getElementById("verdict-banner");
         banner.textContent = v.label;
         banner.className = "verdict-banner " + v.cls;
-        document.getElementById("verdict-detail").textContent =
-          `${similarity}% match with the betting odds — ${v.detail}`;
+        document.getElementById("verdict-detail").innerHTML =
+          `<strong>${scores.overall}% match with the betting odds</strong> — ${v.detail}` +
+          `<div style="margin-top:10px; opacity:0.85; font-size:12px;">` +
+          `Top 10: ${scores.top10}% · Top 5: ${scores.top5}% · Winner: ${scores.winner}%` +
+          `</div>`;
         requestAnimationFrame(() => {
-          document.getElementById("verdict-meter-fill").style.width = similarity + "%";
+          document.getElementById("verdict-meter-fill").style.width = scores.overall + "%";
         });
       } else {
         document.getElementById("verdict").classList.add("hidden");
